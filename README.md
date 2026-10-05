@@ -58,25 +58,26 @@ FitFindr is a thrifting assistant. A user describes what they want in plain lang
 
 ### `search_listings`
 
-- **What it does:** Finds listings that match what the user asked for.
-- **Inputs:** `query` (str), `max_price` (float), `size` (str), `category` (str)
-- **Returns:** A list of listing dicts, each with `id` (str), `title` (str), `description` (str), `category` (str), `style_tags` (list of str), `size` (str), `condition` (str), `price` (float), `colors` (list of str), `brand` (str), `platform` (str).
+- **What it does:** Finds listings that match a description.
+- **Inputs:** `description` (str), `size` (str or None), `max_price` (float or None). `None` means don't filter on that input. A size matches when it equals one of the parts of the listing's size, ignoring case, where the size is split on `/`, spaces and parentheses ("M" matches "S/M" and "M/L" but not "US 9" or "W30 L30").
+- **Returns:** A list of listing dicts, best keyword match first. Each dict has `id` (str), `title` (str), `description` (str), `category` (str), `style_tags` (list of str), `size` (str), `condition` (str), `price` (float), `colors` (list of str), `brand` (str or None), `platform` (str). Matching is keyword overlap between `description` and the listing's `title`, `description` and `style_tags`.
 - **When it has nothing:** Returns an empty list `[]`.
+
 
 ### `suggest_outfit`
 
-- **What it does:** Suggests what one listing would go with from the user's wardrobe.
-- **Inputs:** `listing` (dict,, the return value of search_listings, first item from search_listings, each with `id` (str), `title` (str), `description` (str), `category` (str), `style_tags` (list of str), `size` (str), `condition` (str), `price` (float), `colors` (list of str), `brand` (str), `platform` (str)), `wardrobe` (list of dicts, each with `id`, `name`, `category`, `colors`, `style_tags`, `notes`)
-- **Returns:** A dict with `items` (list of wardrobe item dicts, each with `id`, `name`, `category`, `colors`, `style_tags`, `notes`: the pieces from the wardrobe that go with the listing) and `reasoning` (str: one or two sentences explaining why those pieces go with the listing, e.g. matching colors or style tags).
-- **When it has nothing:** If `wardrobe` is `[]`, returns `{"items": [], "reasoning": "No wardrobe items to match."}`.
+- **What it does:** Suggests one or two outfits that combine the thrifted item with the user's wardrobe.
+- **Inputs:** `new_item` (dict, first listing dict from search_listings), `wardrobe` (dict with an `items` key holding a list of dicts, each with `id` (str), `name` (str), `category` (str), `colors` (list of str), `style_tags` (list of str), `notes` (str or None))
+- **Returns:** A non-empty string with one or two outfit suggestions, naming the wardrobe pieces by their `name`.
+- **When it has nothing:** If `wardrobe["items"]` is empty, returns a non-empty string of general styling advice for `new_item`, without naming any wardrobe pieces.
 
 
 ### `create_fit_card`
-- **What it does:** Writes a short caption for the find, based on the listing and the outfit suggested for it.
-- **Inputs:** `list` (dict, the return value of search_listings, first item from search_listings, each with `id` (str), `title` (str), `description` (str), `category` (str), `style_tags` (list of str), `size` (str), `condition` (str), `price` (float), `colors` (list of str), `brand` (str), `platform` (str)), `wardrobe` (list of dicts, each with `id`, `name`, `category`, `colors`, `style_tags`, `notes`), `outfit` (dict, the return value of suggest_outfit: `items` is a list of wardrobe item dicts and `reasoning` is a str)
-- **Returns:** A caption (str), in two parts: an introduction of the find, then the outfit suggestion. The introduction mentions all of the listing's information except `id`: `title`, `description`, `category`, `style_tags`, `size`, `condition`, `price`, `colors`, `brand` and `platform`. The outfit suggestion mentions the `name` of each wardrobe item in `outfit["items"]` and why they go with the listing, based on `outfit["reasoning"]`.
-- **When it has nothing:** If `outfit["items"]` is `[]`, returns a caption with only the introduction of the find, and no outfit suggestion.
 
+- **What it does:** Writes a short caption someone would post about the find, using the item and the outfit suggestion.
+- **Inputs:** `outfit` (str, the string returned by suggest_outfit), `new_item` (dict, first listing dict from search_listings)
+- **Returns:** A string of two to four sentences, written like a real post rather than a product description, that mentions the item, its `price` and its `platform` once each, and is specific about the vibe.
+- **When it has nothing:** If `outfit` is empty or only whitespace, still returns a caption, and for how to wear the item it gives general styling advice based on `new_item` , without naming any wardrobe pieces.
 ---
 
 ## Planning Loop
