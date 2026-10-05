@@ -25,6 +25,8 @@ Given a query that matches at least one listing, the agent completes all three
 tool calls and returns a fit card — in at least 4 of 5 tries.
 
 **Why this target:**
+
+4 of 5 because my search is a plain keyword match and some phrasings will miss.
 <!-- Why 4 of 5 and not 5 of 5? Something about your search, probably —
      "my search is a plain keyword match and some phrasings will miss" is a
      real answer. -->
@@ -37,13 +39,20 @@ Given a query that matches no listings, the agent stops before calling
 `suggest_outfit` and returns a message naming what to change — 5 of 5 tries.
 
 **Why this target:**
+
+5 of 5 because this is the code's job, not the model's: the same query always gives the same result.
 <!-- Why is 5 of 5 reasonable here when criterion 1 isn't? What's different
      about this path? -->
 
 ---
 
-## 3. Something about state
 
+## 3. The same item is passed through all three tools
+
+Across queries whose first search result is a different listing each time, the `id` of `session["search_results"][0]`, the `id` of `session["selected_item"]`, and the `id` of the `new_item` received by `suggest_outfit` and by `create_fit_card` are all the same, in 5 of 5 tries.
+
+**Why this target:**
+5 of 5 because passing the item along is the code's job, not the model's: one mismatch means the loop picked or passed the wrong item. Both tools return strings with no `id`, so I record the `new_item` each one receives.
 <!-- YOU WRITE THIS ONE.
 
      How would you know that the item your search found is the same item the
@@ -54,16 +63,14 @@ Given a query that matches no listings, the agent stops before calling
      compares session["selected_item"] against what actually reached
      suggest_outfit is the shape you're after. -->
 
-
-
-**Why this target:**
-
-
-
 ---
 
-## 4. Something about the fit card
+## 4. The fit card gives the price and the platform
 
+At least 4 of 5 fit cards, each for a different item, mention the item's price and its platform.
+
+**Why this target:**
+4 of 5 because the card is written by a model, which sometimes drops a detail.
 <!-- YOU WRITE THIS ONE.
 
      The fit card calls a model, so the same input can produce different words
@@ -75,15 +82,14 @@ Given a query that matches no listings, the agent stops before calling
      sentence? A card longer than a caption anyone would post? Any of those can
      be turned into a number. -->
 
-
-
-**Why this target:**
-
-
-
 ---
 
-## 5. Your choice
+## 5. The price ceiling is respected
+
+When a query includes a price ceiling, every listing returned has a price at or below it, in 5 of 5 tries.
+
+**Why this target:**
+5 of 5 because the price filter is plain code with no model in it, so one listing over the ceiling is a bug in the filter.
 
 <!-- YOU WRITE THIS ONE TOO.
 
@@ -91,11 +97,6 @@ Given a query that matches no listings, the agent stops before calling
      wardrobe path, what happens when the model can't be reached, whether the
      search respects a price ceiling — anything, as long as it names a number
      or an observable outcome. -->
-
-
-
-**Why this target:**
-
 
 
 ---
