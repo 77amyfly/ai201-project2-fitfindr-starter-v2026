@@ -39,9 +39,8 @@
 
 ## What This Does
 
+FitFindr is a thrifting assistant. A user describes what they want in plain language, such as "a vintage graphic tee under $30, size M", and the agent searches the listings for matches. It then works out what the best match would go with, using the user's existing wardrobe if they have one, and writes a short caption for the find. The user gets back the matching listing, an outfit idea built around it, and a caption they could post or save.
 <!-- Three or four sentences: what a user asks for, and what they get back. -->
-
-
 
 ---
 
