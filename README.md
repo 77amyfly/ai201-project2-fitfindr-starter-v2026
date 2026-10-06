@@ -93,13 +93,13 @@ FitFindr is a thrifting assistant. A user describes what they want in plain lang
      The grader checks your code against what you claim here, so the file and
      function have to be real. -->
 
-**Branch rule:**
+**Branch rule:** If `search_listings` returns [], put a message in `session["error"]` that names what the user could change (the price limit, the size, or the keywords), leave `session["fit_card"]` as `None`, and stop. Otherwise put the first result in `session["selected_item"]` and go to `suggest_outfit`, then `create_fit_card`.
 
 **Where it lives:** `agent.py::run_agent`
 
-**How the query is parsed:** <!-- regex, string splitting, or asking the model — say which -->
+**How the query is parsed:** Regex<!-- regex, string splitting, or asking the model — say which -->
 
-**What moves through the session:** <!-- which fields, in what order -->
+**What moves through the session:** `parsed` (description, size, max_price) → `search_results` → `selected_item` → `outfit_suggestion` → `fit_card`.<!-- which fields, in what order -->
 
 ---
 
@@ -113,8 +113,15 @@ FitFindr is a thrifting assistant. A user describes what they want in plain lang
 **One full query**
 
 ```
-$ python app.py ask '...'
+$    python app.py ask 'vintage graphic tee under $30'
 
+Found:    Y2K Baby Tee — Butterfly Print — $18.0 on depop
+
+  Outfit:   Outfit 1: Pair the Y2K Baby Tee — Butterfly Print with your Baggy straight-leg jeans, dark wash and Chunky white sneakers. Add the Black crossbody bag for an easy, streetwear-inspired look that highlights the fitted crop of the top against the loose denim. 
+
+Outfit 2: Style the tee with your Wide-leg khaki trousers and complete the outfit using the Black cropped zip hoodie thrown over top. Finish with your Black combat boots to mix Y2K sweetness with a slightly grungier edge.
+
+  Fit card: Found this cute little butterfly tee on depop for only $18 and I am obsessed. It is giving major early 2000s mallrat energy, especially paired with baggy dark wash jeans and chunky white sneakers. Can not wait to wear it all spring.
 ```
 
 **The three tools, tested one at a time**
