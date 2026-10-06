@@ -58,9 +58,9 @@ FitFindr is a thrifting assistant. A user describes what they want in plain lang
 
 ### `search_listings`
 
-- **What it does:** Finds listings that match a description.
-- **Inputs:** `description` (str), `size` (str or None), `max_price` (float or None). `None` means don't filter on that input. A size matches when it equals one of the parts of the listing's size, ignoring case, where the size is split on `/`, spaces and parentheses ("M" matches "S/M" and "M/L" but not "US 9" or "W30 L30").
-- **Returns:** A list of listing dicts, best keyword match first. Each dict has `id` (str), `title` (str), `description` (str), `category` (str), `style_tags` (list of str), `size` (str), `condition` (str), `price` (float), `colors` (list of str), `brand` (str or None), `platform` (str). Matching is keyword overlap between `description` and the listing's `title`, `description` and `style_tags`.
+- **What it does:** Finds listings that matching a description, and optionally a size and a price ceiling.
+- **Inputs:** `description` (str), `size` (str or None), `max_price` (float or None). `None` means don't filter on that input.
+- **Returns:** A list of listing dicts, best keyword match first. Each dict has `id` (str), `title` (str), `description` (str), `category` (str), `style_tags` (list of str), `size` (str), `condition` (str), `price` (float), `colors` (list of str), `brand` (str or None), `platform` (str).
 - **When it has nothing:** Returns an empty list `[]`.
 
 
@@ -122,16 +122,23 @@ $ python app.py ask '...'
 ```
 $ python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"
 
+[{'id': 'lst_002', 'title': 'Y2K Baby Tee — Butterfly Print', 'description': 'Super cute early 2000s baby tee with butterfly graphic. Fitted crop length. Tag says medium but fits like a small.', 'category': 'tops', 'style_tags': ['y2k', 'vintage', 'graphic tee', 'cottagecore'], 'size': 'S/M', 'condition': 'excellent', 'price': 18.0, 'colors': ['white', 'pink', 'purple'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_006', 'title': 'Graphic Tee — 2003 Tour Bootleg Style', 'description': 'Vintage-style bootleg tee with faded graphic. Slightly boxy fit. 100% cotton, soft and worn-in.', 'category': 'tops', 'style_tags': ['graphic tee', 'vintage', 'grunge', 'streetwear', 'band tee'], 'size': 'L', 'condition': 'good', 'price': 24.0, 'colors': ['black'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_033','title': 'Vintage Band Tee — Faded Grey', 'description': 'Faded grey band-style tee with distressed graphic. Crew neck. Fits boxy. Well-loved but no holes or major damage.', 'category': 'tops', 'style_tags': ['vintage', 'grunge', 'band tee', 'graphic tee', 'streetwear'],'size': 'L', 'condition': 'fair', 'price': 19.0, 'colors': ['grey', 'charcoal'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_015','title': 'Vintage Graphic Hoodie — Faded Black', 'description': 'Faded black pullover hoodie with barely-visible vintage graphic on thechest. Cozy interior. Some pilling but adds to the worn-in look.', 'category': 'tops', 'style_tags': ['vintage', 'grunge', 'graphic', 'streetwear'], 'size': 'L', 'condition': 'fair', 'price': 26.0, 'colors': ['black', 'charcoal'], 'brand': None, 'platform': 'depop'}]
 ```
 
 ```
-$ python -c "from tools import suggest_outfit; ..."
+$ python -c "from tools import suggest_outfit; from utils.data_loader import get_example_wardrobe, load_listings; print(suggest_outfit(load_listings()[0], get_example_wardrobe()))"
 
+**Outfit 1: Casual Streetwear**
+Pair the Vintage Levi's 501 Jeans with the white ribbed tank top layered under the black cropped zip hoodie. Add the chunky white sneakers and the black crossbody bag for an effortless, everyday look.
+
+**Outfit 2: Vintage Layered**
+Style the Vintage Levi's 501 Jeans with the oversized grey crewneck sweatshirt worn over the white ribbed tank top. Cinch the jeans with the brown leather belt and finish with the black combat boots and the vintage black denim jacket for a textured, vintage-inspired outfit.
 ```
 
 ```
-$ python -c "from tools import create_fit_card; ..."
+$ python -c "from tools import create_fit_card; from utils.data_loader import load_listings; print(create_fit_card('jeans and white sneakers', load_listings()[0]))"
 
+Finally scored the holy grail of denim on depop and my life is officially complete. These vintage 501s have that exact lived-in medium wash and knee fading that looks like they were broken in for decades. For $38, they were an absolute steal and look so good just thrown on with crisp white sneakers and a beat-up tee.
 ```
 
 ---
