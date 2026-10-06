@@ -59,7 +59,7 @@ FitFindr is a thrifting assistant. A user describes what they want in plain lang
 ### `search_listings`
 
 - **What it does:** Finds listings that matching a description, and optionally a size and a price ceiling.
-- **Inputs:** `description` (str), `size` (str or None), `max_price` (float or None). `None` means don't filter on that input.
+- **Inputs:** `description` (str), `size` (str or None), `max_price` (float or None). `None` means don't filter on that input. A size matches when it equals one of the parts of the listing's size, ignoring case, where the size is split on `/` and spaces ("M" matches "S/M" and "M/L" but not "US 9" or "W30 L30").
 - **Returns:** A list of listing dicts, best keyword match first. Each dict has `id` (str), `title` (str), `description` (str), `category` (str), `style_tags` (list of str), `size` (str), `condition` (str), `price` (float), `colors` (list of str), `brand` (str or None), `platform` (str).
 - **When it has nothing:** Returns an empty list `[]`.
 
@@ -161,15 +161,17 @@ Finally scored the holy grail of denim on depop and my life is officially comple
 
 **Moment 1**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+
+- *What I asked for:* My first test of `search_listings('graphic tee', max_price=30)` returned items that weren't graphic tees, including cargo pants (`lst_011`). I asked Claude to work out why.
+- *What came back:* Claude said the keyword matching was a plain substring check across `title`, `description` and `style_tags`, so words inside a listing's `description` could match by accident. 
+- *What I changed:* I removed `description` from the text the search matches against and added `colors`, so it now matches on `title`, `colors` and `style_tags`. Running the same query again returned only graphic tees and a graphic hoodie.
 
 **Moment 2**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* For the "How the query is parsed" part of my README, I asked Claude to compare the three options (regex, string splitting, asking the model) and say which was better. I had been leaning toward the model.
+- *What came back:* A comparison table. Claude said regex was the best fit for my project: it gives the same result every time, which my criterion 2 (an impossible query stops, 5 of 5) depends on, it adds no model call to a run that already makes two, and the example queries all use a fixed pattern like "under $30" and "size M". It said the model would handle looser phrasing but could parse the same sentence differently on different runs.
+- *What I changed:* I dropped the model option and wrote the parsing with regex in `agent.py`. 
+
 
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
