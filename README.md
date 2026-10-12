@@ -78,6 +78,7 @@ FitFindr is a thrifting assistant. A user describes what they want in plain lang
 - **Inputs:** `outfit` (str, the string returned by suggest_outfit), `new_item` (dict, first listing dict from search_listings)
 - **Returns:** A string of two to four sentences, written like a real post rather than a product description, that mentions the item, its `price` and its `platform` once each, and is specific about the vibe.
 - **When it has nothing:** If `outfit` is empty or only whitespace, still returns a caption, and for how to wear the item it gives general styling advice based on `new_item` , without naming any wardrobe pieces.
+
 ---
 
 ## Planning Loop
