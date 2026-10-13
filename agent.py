@@ -155,6 +155,7 @@ def run_agent(query: str, wardrobe: dict) -> dict:
             "search_listings (via MCP)",
             inputs=f"description={parsed['description']!r}, size={parsed['size']}, max_price={parsed['max_price']}",
             returned=session["search_results"],
+            note=f"first result id={session['search_results'][0]['id']}" if session["search_results"] else "",
         )
 
         if len(session["search_results"]) == 0:
@@ -185,7 +186,7 @@ def run_agent(query: str, wardrobe: dict) -> dict:
         )
         trace.step(
             "suggest_outfit",
-            inputs=f"item={session['selected_item']['title']!r}, wardrobe items={len(session['wardrobe']['items'])}",
+            inputs=f"item id={session['selected_item']['id']} ({session['selected_item']['title']!r}), wardrobe items={len(session['wardrobe']['items'])}",
             returned=session["outfit_suggestion"],
         )
 
@@ -194,7 +195,7 @@ def run_agent(query: str, wardrobe: dict) -> dict:
         )
         trace.step(
             "create_fit_card",
-            inputs=f"outfit=<{len(session['outfit_suggestion'])} chars>, item={session['selected_item']['title']!r}",
+            inputs=f"outfit=<{len(session['outfit_suggestion'])} chars>, item id={session['selected_item']['id']} ({session['selected_item']['title']!r})",
             returned=session["fit_card"],
         )
 

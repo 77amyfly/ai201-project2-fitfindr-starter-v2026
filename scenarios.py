@@ -35,6 +35,96 @@ SCENARIOS = [
         "wardrobe": "empty",
         "criterion": None,
     },
+        {
+        "name": "item passed through, item 1 (denim jacket)",
+        "query": "denim jacket",
+        "wardrobe": "example",
+        "criterion": 3,
+    },
+    {
+        "name": "item passed through, item 2 (cargo pants)",
+        "query": "cargo pants",
+        "wardrobe": "example",
+        "criterion": 3,
+    },
+    {
+        "name": "item passed through, item 3 (sneakers)",
+        "query": "sneakers",
+        "wardrobe": "example",
+        "criterion": 3,
+    },
+    {
+        "name": "item passed through, item 4 (leather jacket)",
+        "query": "leather jacket",
+        "wardrobe": "example",
+        "criterion": 3,
+    },
+    {
+        "name": "item passed through, item 5 (band tee)",
+        "query": "band tee",
+        "wardrobe": "example",
+        "criterion": 3,
+    },
+        {
+        "name": "fit card price+platfor, item 1 (denim jacket)",
+        "query": "denim jacket",
+        "wardrobe": "example",
+        "criterion": 4,
+    },
+    {
+        "name": "fit card price+platfor, item 2 (cargo pants)",
+        "query": "cargo pants",
+        "wardrobe": "example",
+        "criterion": 4,
+    },
+    {
+        "name": "fit card price+platfor, item 3 (sneakers)",
+        "query": "sneakers",
+        "wardrobe": "example",
+        "criterion": 4,
+    },
+    {
+        "name": "fit card price+platfor, item 4 (leather jacket)",
+        "query": "leather jacket",
+        "wardrobe": "example",
+        "criterion": 4,
+    },
+    {
+        "name": "fit card price+platfor, item 5 (band tee)",
+        "query": "band tee",
+        "wardrobe": "example",
+        "criterion": 4,
+    },
+    {
+        "name": "price ceiling 1 (denim jacket under $30)",
+        "query": "denim jacket under $30",
+        "wardrobe": "example",
+        "criterion": 5,
+    },
+    {
+        "name": "price ceiling 2 (sneakers under $40)",
+        "query": "sneakers under $40",
+        "wardrobe": "example",
+        "criterion": 5,
+    },
+    {
+        "name": "price ceiling 3 (leather jacket under $40)",
+        "query": "leather jacket under $40",
+        "wardrobe": "example",
+        "criterion": 5,
+    },
+    {
+        "name": "price ceiling 4 (band tee under $20)",
+        "query": "band tee under $20",
+        "wardrobe": "example",
+        "criterion": 5,
+    },
+    {
+        "name": "price ceiling 5 (cargo pants under $30)",
+        "query": "cargo pants under $30",
+        "wardrobe": "example",
+        "criterion": 5,
+    },
     # TODO: add what your criteria 3, 4 and 5 need.
     #
     # Set "criterion" to the number in criteria.md that the scenario tests.
