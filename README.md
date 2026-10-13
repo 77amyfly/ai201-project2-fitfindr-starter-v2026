@@ -253,19 +253,41 @@ that produced it:
      the same length, your branch isn't working — and this is the fastest way
      anyone will ever find that out. -->
 
-**Happy path**
+**Happy path** 
+```
+python app.py ask 'vintage graphic tee under $30' --trace                
+
+[1] search_listings (via MCP)
+      in:  description='vintage graphic tee', size=None, max_price=30.0
+      out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey … +7 more
+[2] suggest_outfit
+      in:  item='Y2K Baby Tee — Butterfly Print', wardrobe items=10
+      out: Outfit 1: Pair the Y2K Baby Tee — Butterfly Print with your Baggy straight-leg jeans, dark wash for a classic …
+[3] create_fit_card
+      in:  outfit=<576 chars>, item='Y2K Baby Tee — Butterfly Print'
+      out: scored this vintage butterfly baby tee on depop for only $18 and it is honestly the ultimate 2000s mood. i lov…
 
 ```
 
+
+**Empty search** 
+```
+python app.py ask 'GMC Yukon' --trace                
+
+[1] search_listings (via MCP)
+      in:  description='GMC Yukon', size=None, max_price=None
+      out: [] (empty)
+[2] branch: no results
+      →    stopping before suggest_outfit; fit_card stays None
+
 ```
 
-**Empty search**
 
-```
 
-```
+**On the MCP move:** In mcp_server.py I registered search_listings with @mcp.tool(); its docstring states the size-matching rule, the price unit (US dollars), and that it returns [] when nothing matches. In agent.py I replaced the direct call with call_tool("search_listings", {...}) and removed search_listings from the tools import.
 
-**On the MCP move:** <!-- what changed in your code, and whether anything
+Nothing behaved differently: the same query gave the same Found line before and after ("Y2K Baby Tee — Butterfly Print — $18.0 on depop"), and the price stayed a float.
+<!-- what changed in your code, and whether anything
 behaved differently afterwards. If the rewire didn't work, say exactly where it
 broke — the error text and the last thing that worked. That earns the point in
 full. -->

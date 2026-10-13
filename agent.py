@@ -108,6 +108,7 @@ def run_agent(query: str, wardrobe: dict) -> dict:
         than a stack trace. The import is already at the top of this file.
     """
     session = new_session(query, wardrobe)
+    trace.start_trace()
 
     count = 0
     while count < 1:
@@ -150,6 +151,11 @@ def run_agent(query: str, wardrobe: dict) -> dict:
             "size": parsed["size"],
             "max_price": parsed["max_price"],
         })
+        trace.step(
+            "search_listings (via MCP)",
+            inputs=f"description={parsed['description']!r}, size={parsed['size']}, max_price={parsed['max_price']}",
+            returned=session["search_results"],
+        )
 
         if len(session["search_results"]) == 0:
             message = f"No listings matched '{parsed['description']}'"
@@ -166,6 +172,10 @@ def run_agent(query: str, wardrobe: dict) -> dict:
             tips.append("searching for just the type of item, like 'dress'")
             message += ", ".join(tips) + "."
             session["error"] = message
+            trace.step(
+                "branch: no results",
+                note="stopping before suggest_outfit; fit_card stays None",
+            )
             return session
 
         session["selected_item"] = session["search_results"][0]
@@ -173,9 +183,19 @@ def run_agent(query: str, wardrobe: dict) -> dict:
         session["outfit_suggestion"] = suggest_outfit(
             session["selected_item"], session["wardrobe"]
         )
+        trace.step(
+            "suggest_outfit",
+            inputs=f"item={session['selected_item']['title']!r}, wardrobe items={len(session['wardrobe']['items'])}",
+            returned=session["outfit_suggestion"],
+        )
 
         session["fit_card"] = create_fit_card(
             session["outfit_suggestion"], session["selected_item"]
+        )
+        trace.step(
+            "create_fit_card",
+            inputs=f"outfit=<{len(session['outfit_suggestion'])} chars>, item={session['selected_item']['title']!r}",
+            returned=session["fit_card"],
         )
 
     return session
