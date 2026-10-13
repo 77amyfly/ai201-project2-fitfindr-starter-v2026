@@ -304,14 +304,19 @@ cargo pants, max_price=30:
 
 | # | Criterion | Target | Verdict | How I decided |
 |---|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
-| 4 |  |  |  |  |
-| 5 |  |  |  |  |
+| 1 | A matching query completes all three tools | 4 of 5 | MET | 5 of 5 tries had stopped early: no and returned a fit card. |
+| 2 | An impossible query stops before the second tool | 5 of 5 | MET | 5 of 5 tries stopped early: yes with a message naming what to change; trace had 2 steps and 0 model calls. |
+| 3 | The same item is passed through all three tools | 5 of 5 | MET | For all 5 items (lst_007, lst_011, lst_019, lst_004, lst_006) the id in the search step, suggest_outfit and create_fit_card matched, in all 5 runs of each (25 runs). |
+| 4 | The fit card gives the price and the platform | 4 of 5 | MET | All 25 cards (5 items x 5 runs) contained the item's price and its platform name (case ignored). |
+| 5 | The price ceiling is respected | 5 of 5 | MET | Every listing returned for the 5 capped queries was at or below the ceiling; one was exactly $30 at a $30 ceiling. |
 
 **Diagnoses**
+No criterion was missed, so there is no miss to diagnose. I do not think that means the agent is solid. It means my targets were easy to meet.
 
+- **Criterion 1 never tested its own reason.** I gave 4 of 5 because "some phrasings will miss", but I ran one query five times. Search is plain code, so five runs return the same results. I would tighten it to five different phrasings of the same request, such as "graphic tee", "band shirt" and "vintage t-shirt".
+- **Criteria 3 and 5 are plain code**, so 5 of 5 was always likely. They guard against future regressions more than they test anything now.
+- **A search problem my criteria did not see.** The first result is often not what the user asked for: "leather jacket" returned a track jacket, "leather jacket under $40" returned a belt, and "denim jacket under $30" returned denim shorts. Keyword matching scores a listing if any one word of the query appears in it. Every criterion still passed. This is a tool problem (search_listings), and a criterion such as "the first result's category matches the item asked for" would have caught it.
+- **A measurement gap.** run_eval.py records only the first result's price, so criterion 5 could not be scored from the run log. I called search_listings directly to see every returned price.
 
 
 ---
