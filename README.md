@@ -174,6 +174,12 @@ Finally scored the holy grail of denim on depop and my life is officially comple
 - *What I changed:* I dropped the model option and wrote the parsing with regex in `agent.py`. 
 
 
+**Moment 3 (unit 4)**
+
+- *What I asked for:* How to improve the accuracy of search_listings, for example by giving different matching words different weights.
+- *What came back:* Claude suggested several fixes (a category map, extra weight for title matches, whole-word matching) and explained the new problems each one would bring.
+- *What I changed:* Nothing in the search. I decided that a code-only fix always trades one problem for another, and that a real fix would need a model call to parse the query, which was too complex. So I dropped that direction and used my one improvement on price parsing instead.
+
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
      Don't fill these in during unit 3.
@@ -449,6 +455,7 @@ confirm that nothing broke.
 ---
 
 ## What's Still Broken
+search ranking is still weak. search_listings keeps a listing if any one word of the query matches, so "leather jacket" returns a track jacket first, and "leather jacket under $40" returns a belt first.
 
 <!-- For each criterion still missed: what you'd do, and why you stopped where
      you did. "I ran out of time" is fine if it's true. Pretending nothing is
