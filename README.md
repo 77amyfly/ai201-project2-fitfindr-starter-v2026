@@ -412,14 +412,13 @@ The currency words were also left in the description in the baseline, but that d
 
 Each query was run with `python app.py ask '...' --trace`. The `zzzz` prefix guarantees no match, so there are 0 model calls. Only the `in:` line matters.
 
-```
 'zzzz under $20'         in:  description='zzzz', size=None, max_price=20.0
 'zzzz under 20 dollars'  in:  description='zzzz dollars', size=None, max_price=20.0
 'zzzz under 20 bucks'    in:  description='zzzz bucks', size=None, max_price=20.0
 'zzzz 20 dollars max'    in:  description='zzzz 20 dollars max', size=None, max_price=None
 'zzzz under 5dollors'    in:  description='zzzz dollors', size=None, max_price=5.0
 'zzzz $20 or less'       in:  description='zzzz 20 or less', size=None, max_price=None
-```
+
 
 
 
@@ -434,6 +433,7 @@ Each query was run with `python app.py ask '...' --trace`. The `zzzz` prefix gua
 | 5 | The price ceiling is respected | 5 of 5 | MET | Every listing returned for the 5 capped queries was at or below the ceiling; one was exactly $30 at a $30 ceiling. |
 
 Each query was run with `python app.py ask '...' --trace`. The `zzzz` prefix guarantees no match, so there are 0 model calls. Only the `in:` line matters.
+
 'zzzz under $20'         in:  description='zzzz', size=None, max_price=20.0
 'zzzz under 20 dollars'  in:  description='zzzz', size=None, max_price=20.0
 'zzzz under 20 bucks'    in:  description='zzzz', size=None, max_price=20.0
