@@ -124,6 +124,13 @@ def run_agent(query: str, wardrobe: dict) -> dict:
             text,
             re.I,
         )
+        if not price_match:
+            # number first: "20 dollars max", "$20 or less", "20 bucks or under"
+            price_match = re.search(
+                r"\$?\s*(\d+(?:\.\d+)?)\s*(?:dollars?|bucks?|usd)?\s*(?:max|or less|or under|or below|or cheaper)",
+                text,
+                re.I,
+            )
         if price_match:
             max_price = float(price_match.group(1))
             text = text.replace(price_match.group(0), " ")
@@ -134,8 +141,8 @@ def run_agent(query: str, wardrobe: dict) -> dict:
             text = text.replace(size_match.group(0), " ")
 
         description = re.sub(
-            r"\b(in|looking for|i want|i need|a|an)\b", " ", text, flags=re.I
-        )
+                r"\b(in|looking for|i want|i need|a|an|dollars?|bucks?|dollors?|usd)\b", " ", text, flags=re.I
+                )
         description = re.sub(r"[^A-Za-z0-9\s'-]", " ", description)
         description = " ".join(description.split())
 

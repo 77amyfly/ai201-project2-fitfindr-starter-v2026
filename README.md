@@ -386,25 +386,66 @@ full. -->
 
 **What I changed:**
 
+In `agent.py::run_agent`, the price parsing only. Nothing else was touched.
+
+- **Number-first phrasings.** The original regex only found a limit when the keyword came before the number ("under $20", "up to 30"). I added a second pattern, tried only when the first finds nothing, for "20 dollars max", "$20 or less" and "20 bucks or under".
+- **Currency words.** `dollars`, `bucks`, `dollors` and `usd` are now removed from the description.
+
 **Which failure it was meant to fix:**
+
+The price limit was silently dropped. Before the change, "20 dollars max" and "$20 or less" both parsed to `max_price=None`, so the agent searched with no ceiling and returned 3 and 10 results. The user's budget was ignored with no message.
+
+Criterion 5 did not catch this because every criterion 5 scenario used "under $N".
+
+I found it while checking search quality. I ruled out other candidates first (a category map, title weighting, whole-word matching) because each had problems of its own.
+
+The currency words were also left in the description in the baseline, but that did not change the search results, so it is a side cleanup and not the main reason.
+
+
+### Baseline (before the change)
+
+Each query was run with `python app.py ask '...' --trace`. The `zzzz` prefix guarantees no match, so there are 0 model calls. Only the `in:` line matters.
+
+```
+'zzzz under $20'         in:  description='zzzz', size=None, max_price=20.0
+'zzzz under 20 dollars'  in:  description='zzzz dollars', size=None, max_price=20.0
+'zzzz under 20 bucks'    in:  description='zzzz bucks', size=None, max_price=20.0
+'zzzz 20 dollars max'    in:  description='zzzz 20 dollars max', size=None, max_price=None
+'zzzz under 5dollors'    in:  description='zzzz dollors', size=None, max_price=5.0
+'zzzz $20 or less'       in:  description='zzzz 20 or less', size=None, max_price=None
+```
+
+
 
 ### Run Log — After
 
-| Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
-|---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
+| # | Criterion | Target | Verdict | How I decided |
+|---|---|---|---|---|
+| 1 | A matching query completes all three tools | 4 of 5 | MET | 5 of 5 tries had stopped early: no and returned a fit card. |
+| 2 | An impossible query stops before the second tool | 5 of 5 | MET | 5 of 5 tries stopped early: yes with a message naming what to change; trace had 2 steps and 0 model calls. |
+| 3 | The same item is passed through all three tools | 5 of 5 | MET | For all 5 items (lst_007, lst_011, lst_019, lst_004, lst_006) the id in the search step, suggest_outfit and create_fit_card matched, in all 5 runs of each (25 runs). |
+| 4 | The fit card gives the price and the platform | 4 of 5 | MET | All 25 cards (5 items x 5 runs) contained the item's price and its platform name (case ignored). |
+| 5 | The price ceiling is respected | 5 of 5 | MET | Every listing returned for the 5 capped queries was at or below the ceiling; one was exactly $30 at a $30 ceiling. |
+
+Each query was run with `python app.py ask '...' --trace`. The `zzzz` prefix guarantees no match, so there are 0 model calls. Only the `in:` line matters.
+'zzzz under $20'         in:  description='zzzz', size=None, max_price=20.0
+'zzzz under 20 dollars'  in:  description='zzzz', size=None, max_price=20.0
+'zzzz under 20 bucks'    in:  description='zzzz', size=None, max_price=20.0
+'zzzz 20 dollars max'    in:  description='zzzz', size=None, max_price=20.0
+'zzzz under 5dollors'    in:  description='zzzz', size=None, max_price=5.0
+'zzzz $20 or less'       in:  description='zzzz', size=None, max_price=20.0
 
 **Did it help, and how do I know:**
 
-<!-- If it made things worse, say that. Honestly reported, that earns full
-     credit and is more interesting than one that worked. -->
+Yes. The agent now recognizes price limits written with the number first,
+like "20 dollars max" and "$20 or less". Before the change both were read as
+having no limit (max_price=None). Now both give max_price=20.0.
 
+Phrasings that already worked, like "under $20", behave the same as before.
 
-
+The after run log is identical to the before one. That is expected: all 18
+scenarios use "under $N", so they could not show this change. They only
+confirm that nothing broke.
 ---
 
 ## What's Still Broken
