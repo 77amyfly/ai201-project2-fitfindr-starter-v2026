@@ -11,7 +11,7 @@ need internet access and your own `GEMINI_API_KEY`.
 ## From a clean checkout
 
 ```bash
-git clone clone https://github.com/77amyfly/ai201-project2-fitfindr-starter-v2026 fitfinder-test
+git clone https://github.com/77amyfly/ai201-project2-fitfindr-starter-v2026 fitfinder-test
 cd fitfinder-test
 python3.13 -m venv .venv
 source .venv/bin/activate

@@ -132,3 +132,43 @@ When a query includes a price ceiling, every listing returned has a price at or 
      A number you missed stays where it is, gets diagnosed, and gets a fix
      attempted. That's where the points are.
      ───────────────────────────────────────────────────────────────────────── -->
+
+## Capstone criteria
+
+**1. A fresh clone runs from RUNNING.md and can be used**
+
+Following RUNNING.md once from a clean clone, `python test.py` shows 10 passed, and 10 of 10 queries of the tester's choice run to completion: the command prints a reply (a result or a message) and returns to the prompt.
+
+Why this target: Being able to install and run the system is the precondition for anyone using it, so it has to work. It is 10 of 10 because this only tests installation and startup, with no model randomness, so a single failure means a real problem with a dependency or the MCP server.
+
+
+**2. Every run leaves a complete log record**
+In any 10 consecutive runs, whatever their outcome, `runs.jsonl` gains exactly 10 new lines, and every line contains all 10 keys (`ts`, `input`, `output`, `status`, `item_id`, `wardrobe_items`, `model_calls`, `prompt_tokens`, `output_tokens`, `ms`).
+
+
+Why this target:
+10 of 10 because the log is the only way I can diagnose a run after the fact, and a missing record is invisible: nothing shows that it is missing. The 10 runs are picked at random, so they can end in a result, in no results, or in an error, and the log has to be complete in all three cases.
+
+
+**3. A run that finds a listing finishes within 4 seconds**
+
+In 10 consecutive runs of queries that match at least one listing, and at least 9 seconds between runs so the rate limiter never pauses, the `ms` value in `runs.jsonl` is 4000 or less in at least 8 of the 10. `ms` covers the whole run, including starting the search server and both model calls.
+
+Why this target:
+4 seconds because this is a command-line tool someone waits at, and past about 4 seconds a person starts to wonder whether it has hung. It is 8 of 10 and not 10 of 10 because part of the time is the model service answering. 
+
+
+**4. An empty query gets a message that asks for input**
+
+For 5 empty or blank queries (for example `' '`, `'   '`, or a query with only a price like `'under $30'`), all 5 runs end without calling the model (`model_calls` is 0) and the terminal message tells the user to describe an item.
+
+
+Why this target:
+5 of 5 because an empty query is deterministic: the same input always gives the same result, so there is no randomness to excuse a miss. I picked this path because a blank query is the most likely mistake from someone using the tool for the first time, and today the message says `No listings matched ''`, which blames the search for something the user did not type. 
+
+**5. A run that finds a listing makes exactly 2 model calls and uses 1000 tokens or fewer**
+In 10 consecutive runs of queries that match at least one listing, a run passes if its `model_calls` is 2 and its `prompt_tokens` plus `output_tokens` is 1000 or less. At least 7 of the 10 runs must pass.
+
+
+Why this target:
+Exactly 2 calls because the loop has two model stages, `suggest_outfit` and `create_fit_card`, so any other number means a retry or a loop I did not intend. 1000 tokens because my measured average is 922, which leaves about 8% of room. It is 7 of 10 and not 10 of 10 because the length of what the model writes varies from run to run, and one of my measured runs was 1009. I allow 2 such runs, but not more, because then the typical run would be over budget.
