@@ -502,3 +502,38 @@ search ranking is still weak. search_listings keeps a listing if any one word of
 ---
 
 📖 **How to run this project: [RUNNING.md](RUNNING.md)**
+
+
+<!-- ═══════════════════════ Capstone ═══════════════════════ -->
+
+## Capstone
+
+## Capstone
+
+**What This Extends**
+
+FitFinder, my Project 2 agent (search listings, suggest outfits, write a fit
+card). The extension is the operational layer: the run path, the
+instrumentation, and the numbers that come out of it. Concretely, that means a
+one-command local run path, structured logging of every run, and a measured
+cost per run.
+
+**The Shape**
+
+Shape A (deploy and instrument), local run (Path B). Out of scope: no new
+features, no new interface, no changes to the retrieval strategy.
+
+**Running It**
+
+**Instrumentation**
+
+**What It Costs**
+
+**Run Log and Verdicts**
+
+**The Improvement**
+
+**What's Still Broken**
+
+**How I Used AI**
+
