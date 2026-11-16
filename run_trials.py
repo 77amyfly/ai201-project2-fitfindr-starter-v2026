@@ -19,7 +19,9 @@ QUERIES = [
 
 os.makedirs("results", exist_ok=True)
 
-for trial in (1, 2, 3):
+import sys
+
+for trial in [int(a) for a in sys.argv[1:]] or [1, 2, 3]:
     for q in QUERIES:
         run_agent(q, get_example_wardrobe())
         time.sleep(9)

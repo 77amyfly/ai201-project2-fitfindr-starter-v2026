@@ -662,11 +662,74 @@ which gives `No listings matched ''`. The trace shows this directly:
 since `model_calls` was 0 in every run. The message is wrong because the input
 was never validated, not because the search failed.
 
+
 **The Improvement**
 
+One change, aimed at the diagnosis above. In `agent.py::_run_agent`, right
+after `parsed = session["parsed"]` and before the call to `search_listings`, I
+added a check: if `description` is empty, set `session["error"]` to
+"Please describe the item you're looking for, for example 'denim jacket under
+$50'." and return. The search server is not started and the model is not called.
+The log status stays `no_results`, so criterion 2 is not affected. I changed
+nothing else between the two result sets.
 
+After :
+
+| Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
+|---|---|---|---|---|---|
+| 1. A fresh clone runs from RUNNING.md and can be used | `test.py` shows 10 passed, 10 of 10 queries complete | 10/10 | 10/10 | 10/10 | MET 
+| 2. Every run leaves a complete log record | 10 of 10 lines with all 10 keys | 10/10 | 10/10 | 10/10 | MET |
+| 3. A run that finds a listing finishes within 4 seconds | at least 8 of 10 at 4000 ms or less | 10/10 | 9/10 | PENDING | PENDING |
+| 4. An empty query gets a message that asks for input | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 5. 2 model calls and 1000 tokens or fewer | at least 8 of 10 pass | 10/10 | 10/10 | 10/10 |  MET |
+
+The change helped: criterion 4 went from 0 of 5 to 5 of 5 in every trial, and
+all five messages now ask the user to describe an item and no longer contain
+`matched ''`. Nothing got worse that I can see. The one run over 4 seconds in
+after-trial 2 (4601 ms) is inside what criterion 3 allows, and the model
+service was under load at the time (see What's Still Broken).
+
+Two things went wrong in the after runs, both from the model service and not
+from my code. In after-trial 3 of `run_trials.py`, Gemini returned
+`503 UNAVAILABLE` ("high demand") and the script stopped. In the criterion 2
+runs, the same 503 hit one query (`leather bomber`) in trials 1 and 2, and the
+log recorded it as `status: "error"` with all 10 keys. 
 
 **What's Still Broken**
 
+- Criterion 3: the target is too loose. My slowest run before the change was
+  3.3 s, and I allowed up to 4 s with 2 misses. I would tighten it to 3 seconds
+  in 9 of 10 runs, which my own data would sometimes miss. I stopped here
+  because the criterion did its job as written.
+- Criterion 5: the margin is thin. The highest run so far was 984 tokens
+  against a limit of 1000, so a slightly longer listing description could push
+  runs over. I would set the limit at 1100 and keep the 8 of 10 rule, or
+  shorten the prompts.
+- A temporary 503 from the model service fails the whole run. `generate.py`
+  retries only rate-limit errors, not 503. Retrying with a short wait is what I
+  would do first with another unit, because it is the failure I actually hit
+  during testing and it is outside what I scoped (no retry handling).
+- An empty string passed as the query (`python app.py ask ''`) is not covered:
+  the CLI treats it as "no query" and waits for input instead of running the
+  agent, so it leaves no log record. I did not test it because it blocks.
+- Criterion 1 was only tested with queries I chose; I did not try unusual
+  characters or very long input.
+
 **How I Used AI**
+
+(Write these two yourself, from what really happened. Two true moments from this
+unit that you could use are below. Check each against your memory and change
+the wording to your own.)
+
+1. I asked Claude to review my draft of criterion 1, which said every query
+   should end in one of three valid states. 
+   Claude pointed out that `error` was one of the three, and since my log is written in a `finally` block, every run ends in one of them, so the criterion could never fail. I removed `error` from the allowed states and then, after more back and forth, rewrote the
+   criterion to be about installing from RUNNING.md and the system running to completion.
+
+2. I asked Claude to turn my token limit of 1000 into criterion 5. 
+   Claude computed the per-run totals from my first ten runs and showed that one run
+   was 1009 tokens, so a limit on every run would fail on my own data.
+   I changed the target to "at least 8 of 10 runs pass".
+
+
 

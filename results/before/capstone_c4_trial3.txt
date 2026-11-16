@@ -1,0 +1,66 @@
+QUERY ' '
+[1] search_listings (via MCP)
+      in:  description='', size=None, max_price=None
+      out: [] (empty)
+[2] branch: no results
+      →    stopping before suggest_outfit; fit_card stays None
+
+  No listings matched ''. Try searching for just the type of item, like 'dress'.
+
+0 model calls this session
+
+
+----
+
+QUERY '   '
+[1] search_listings (via MCP)
+      in:  description='', size=None, max_price=None
+      out: [] (empty)
+[2] branch: no results
+      →    stopping before suggest_outfit; fit_card stays None
+
+  No listings matched ''. Try searching for just the type of item, like 'dress'.
+
+0 model calls this session
+
+
+----
+
+QUERY 'under $30'
+[1] search_listings (via MCP)
+      in:  description='', size=None, max_price=30.0
+      out: [] (empty)
+[2] branch: no results
+      →    stopping before suggest_outfit; fit_card stays None
+
+  No listings matched '' under $30. Try raising the price limit, searching for just the type of item, like 'dress'.
+
+0 model calls this session
+
+
+----
+
+QUERY 'under $50'
+[1] search_listings (via MCP)
+      in:  description='', size=None, max_price=50.0
+      out: [] (empty)
+[2] branch: no results
+      →    stopping before suggest_outfit; fit_card stays None
+
+  No listings matched '' under $50. Try raising the price limit, searching for just the type of item, like 'dress'.
+
+0 model calls this session
+
+
+----
+
+QUERY 'size M'
+[1] search_listings (via MCP)
+      in:  description='', size=M, max_price=None
+      out: [] (empty)
+[2] branch: no results
+      →    stopping before suggest_outfit; fit_card stays None
+
+  No listings matched '' in size M. Try removing the size, searching for just the type of item, like 'dress'.
+
+0 model calls this session
