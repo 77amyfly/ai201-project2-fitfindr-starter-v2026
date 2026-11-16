@@ -184,6 +184,16 @@ def _run_agent(query: str, wardrobe: dict) -> dict:
         }
 
         parsed = session["parsed"]
+        if not parsed["description"]:
+            session["error"] = (
+                "Please describe the item you're looking for, "
+                "for example 'denim jacket under $50'."
+            )
+            trace.step(
+                "branch: empty description",
+                note="stopping before search_listings; no search was run",
+            )
+            return session
         session["search_results"] = call_tool("search_listings", {
             "description": parsed["description"],
             "size": parsed["size"],

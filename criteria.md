@@ -171,4 +171,4 @@ In 10 consecutive runs of queries that match at least one listing, a run passes 
 
 
 Why this target:
-Exactly 2 calls because the loop has two model stages, `suggest_outfit` and `create_fit_card`, so any other number means a retry or a loop I did not intend. 1000 tokens because my measured average is 922, which leaves about 8% of room. It is 7 of 10 and not 10 of 10 because the length of what the model writes varies from run to run, and one of my measured runs was 1009. I allow 2 such runs, but not more, because then the typical run would be over budget.
+Exactly 2 calls because the loop has two model stages, `suggest_outfit` and `create_fit_card`, so any other number means a retry or a loop I did not intend. 1000 tokens because my measured average is 922, which leaves about 8% of room. It is 7 of 10 and not 10 of 10 because the length of what the model writes varies from run to run, and one of my measured runs was 1009. I allow 3 such runs, but not more, because then the typical run would be over budget.

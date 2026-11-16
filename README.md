@@ -598,7 +598,73 @@ A run that finds nothing makes no model calls (the branch stops before
 
 **Run Log and Verdicts**
 
+Before the improvement. Each cell is the number of runs that passed.
+
+| Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
+|---|---|---|---|---|---|
+| 1. A fresh clone runs from RUNNING.md and can be used | `test.py` shows 10 passed, 10 of 10 queries complete | 10/10 | 10/10 | 10/10 | MET |
+| 2. Every run leaves a complete log record | 10 of 10 lines with all 10 keys | 10/10 | 10/10 | 10/10 | MET |
+| 3. A run that finds a listing finishes within 4 seconds | at least 8 of 10 at 4000 ms or less | 10/10 | 10/10 | 10/10 | MET |
+| 4. An empty query gets a message that asks for input | 5 of 5 | 0/5 | 0/5 | 0/5 | MISSED |
+| 5. 2 model calls and 1000 tokens or fewer | at least 8 of 10 pass | 10/10 | 10/10 | 10/10 | MET |
+
+Real output from trial 1 of each criterion:
+
+**Criteria 3 and 5**: `results/capstone_trial1.jsonl`, written by
+`agent.py::run_agent` through `runlog.py::log_run`.
+
+```
+{"ts": "2026-11-16T06:05:26+00:00", "input": "vintage graphic tee under $30", "status": "ok", "output": "scored this absolute dream of a butterfly baby tee on depop for just $18 and I am never takingit off. It gives major early 2000s mall rat energy, especially paired with baggy dark wash jeans and chunky sneakers. If it gets chilly, I am just throwing on a black cropped zip hoodie and calling it a day.", "item_id": "lst_002", "wardrobe_items": 10, "model_calls": 2, "prompt_tokens": 755, "output_tokens": 194, "ms": 2872}
+{"ts": "2026-11-16T06:05:38+00:00", "input": "90s track jacket in size M", "status": "ok", "output": "Scored this vintage Champion track jacket on poshmark and I am completely obsessed with the navy and white contrast. For $45, it is honestly the ultimate layering piece to throw over baggy denim and chunky sneakers for an effortless 90s streetwear vibe. I can also totally dress it up with khaki trousers for that retro-athletic look.", "item_id": "lst_004", "wardrobe_items": 10, "model_calls": 2, "prompt_tokens": 719, "output_tokens": 171, "ms": 3052}
+```
+
+**Criterion 2**: `results/capstone_c2_trial1.jsonl`, same writer. Line 3 is a
+run with no results (`status: "no_results"`), and line 4 is a run with an
+invalid API key (`status: "error"`).
+
+```
+{"ts": "2026-11-16T06:13:19+00:00", "input": "vintage graphic tee under $30", "status": "ok", "output": "scored this little butterfly baby tee on depop for only $18 and I am obsessed with the early 2000s energy. honestly looks so good with dark wash baggy jeans and chunky white sneakers for the ultimate nostalgic streetwear vibe. can also totally picture wearing it with wide-leg khakis and a black denim jacket when it gets chilly out.", "item_id": "lst_002", "wardrobe_items": 10, "model_calls": 2, "prompt_tokens": 735, "output_tokens": 175, "ms": 2720}
+{"ts": "2026-11-16T06:13:27+00:00", "input": "90s track jacket in size M", "status": "ok", "output": "Found this vintage Champion track jacket on poshmark and it is officially the holy grail of my lazy outfit days. I threw it on over a white ribbed tank and some baggy dark wash denim, and suddenly I look like I actually tried to put together a streetwear fit. For only $45, the navy and white stripes give off the exact effortless 90s athletic energy I have been hunting for.", "item_id": "lst_004", "wardrobe_items": 10, "model_calls": 2, "prompt_tokens": 732, "output_tokens": 195, "ms": 2274}
+{"ts": "2026-11-16T06:13:32+00:00", "input": "designer ballgown size XXS under $5", "status": "no_results", "output": "No listings matched 'designer ballgown' in size XXS under $5. Try raising the price limit, removing the size, searching for just the type of item, like 'dress'.", "item_id": null, "wardrobe_items": 10, "model_calls": 0, "prompt_tokens": 0, "output_tokens": 0, "ms": 392}
+{"ts": "2026-11-16T06:13:38+00:00", "input": "denim jacket under $50", "status": "error", "output": "ModelUnavailable: The model rejected your API key. Check GEMINI_API_KEY in your .env file, or create a fresh key at aistudio.google.com.", "item_id": null, "wardrobe_items": 10, "model_calls": 1, "prompt_tokens": 0, "output_tokens": 0, "ms": 780}
+```
+
+**Criterion 4**: `results/capstone_c4_trial1.txt`. The message is produced by
+the empty-result branch in `agent.py::_run_agent`. The five lines are the
+messages for `' '`, `'   '`, `'under $30'`, `'under $50'` and `'size M'`.
+
+```
+  No listings matched ''. Try searching for just the type of item, like 'dress'.
+  No listings matched ''. Try searching for just the type of item, like 'dress'.
+  No listings matched '' under $30. Try raising the price limit, searching for just the type of item, like 'dress'.
+  No listings matched '' under $50. Try raising the price limit, searching for just the type of item, like 'dress'.
+  No listings matched '' in size M. Try removing the size, searching for just the type of item, like 'dress'.
+```
+
+**Criterion 1**: run in a fresh clone (`fitfinder-test`), following RUNNING.md.
+`python test.py` printed `10 passed, 0 failed, 0 to look at, 0 skipped`, and
+all 10 queries ran to completion in each of the 3 trials.
+
+**Diagnosis**
+
+Criteria 1, 2, 3 and 5 were met. Criterion 4 was missed in all 3 trials, 0 of 5
+each time, and the five failures are one problem, not five.
+
+The stage is the query parsing in `agent.py::_run_agent`, together with the
+empty-result branch right after it. The mechanism: for `' '`, `'   '`,
+`'under $30'`, `'under $50'` and `'size M'`, the regexes remove the price and
+the size, and what is left is an empty `description`. Nothing checks for that.
+The empty string goes to `search_listings`, which splits it into zero keywords,
+so every listing scores 0 and the result is an empty list. The loop then takes
+the no-results branch and builds its message from `parsed['description']`,
+which gives `No listings matched ''`. The trace shows this directly:
+`in: description=''` followed by `out: [] (empty)`. The model is not involved,
+since `model_calls` was 0 in every run. The message is wrong because the input
+was never validated, not because the search failed.
+
 **The Improvement**
+
+
 
 **What's Still Broken**
 
