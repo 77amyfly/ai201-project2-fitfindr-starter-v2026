@@ -20,6 +20,7 @@ from generate import ModelUnavailable
 from mcp_client import call_tool
 
 import time
+import generate
 from runlog import log_run
 import re
 
@@ -53,12 +54,13 @@ def new_session(query: str, wardrobe: dict) -> dict:
 
 # ── planning loop ─────────────────────────────────────────────────────────────
 
-def run_agent(query: str, wardrobe: dict) -> dict:      
+def run_agent(query: str, wardrobe: dict) -> dict:
     """Run the loop once and write one log record, including when it fails."""
     start = time.perf_counter()
+    tok0, calls0 = generate.token_counts(), generate.call_count()
     status, error, session = "ok", None, None
     try:
-        session = _run_agent(query, wardrobe)           
+        session = _run_agent(query, wardrobe)
         if session["error"]:
             status, error = "no_results", session["error"]
         return session
@@ -66,6 +68,7 @@ def run_agent(query: str, wardrobe: dict) -> dict:
         status, error = "error", f"{type(exc).__name__}: {exc}"
         raise
     finally:
+        tok1, calls1 = generate.token_counts(), generate.call_count()
         item = (session or {}).get("selected_item") or {}
         log_run({
             "input": query,
@@ -73,9 +76,11 @@ def run_agent(query: str, wardrobe: dict) -> dict:
             "output": error if status != "ok" else session["fit_card"],
             "item_id": item.get("id"),
             "wardrobe_items": len(wardrobe.get("items", [])),
+            "model_calls": calls1 - calls0,
+            "prompt_tokens": tok1["prompt"] - tok0["prompt"],
+            "output_tokens": tok1["output"] - tok0["output"],
             "ms": round((time.perf_counter() - start) * 1000),
         })
-
 
 def _run_agent(query: str, wardrobe: dict) -> dict:     
     """
