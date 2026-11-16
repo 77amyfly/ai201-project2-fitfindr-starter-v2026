@@ -19,6 +19,8 @@ from tools import suggest_outfit, create_fit_card
 from generate import ModelUnavailable
 from mcp_client import call_tool
 
+import time
+from runlog import log_run
 import re
 
 # ── session state ─────────────────────────────────────────────────────────────
@@ -51,7 +53,31 @@ def new_session(query: str, wardrobe: dict) -> dict:
 
 # ── planning loop ─────────────────────────────────────────────────────────────
 
-def run_agent(query: str, wardrobe: dict) -> dict:
+def run_agent(query: str, wardrobe: dict) -> dict:      
+    """Run the loop once and write one log record, including when it fails."""
+    start = time.perf_counter()
+    status, error, session = "ok", None, None
+    try:
+        session = _run_agent(query, wardrobe)           
+        if session["error"]:
+            status, error = "no_results", session["error"]
+        return session
+    except Exception as exc:
+        status, error = "error", f"{type(exc).__name__}: {exc}"
+        raise
+    finally:
+        item = (session or {}).get("selected_item") or {}
+        log_run({
+            "input": query,
+            "status": status,
+            "output": error if status != "ok" else session["fit_card"],
+            "item_id": item.get("id"),
+            "wardrobe_items": len(wardrobe.get("items", [])),
+            "ms": round((time.perf_counter() - start) * 1000),
+        })
+
+
+def _run_agent(query: str, wardrobe: dict) -> dict:     
     """
     Run the loop once and return the finished session.
 
