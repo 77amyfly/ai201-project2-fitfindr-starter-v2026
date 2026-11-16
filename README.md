@@ -679,9 +679,9 @@ After :
 |---|---|---|---|---|---|
 | 1. A fresh clone runs from RUNNING.md and can be used | `test.py` shows 10 passed, 10 of 10 queries complete | 10/10 | 10/10 | 10/10 | MET 
 | 2. Every run leaves a complete log record | 10 of 10 lines with all 10 keys | 10/10 | 10/10 | 10/10 | MET |
-| 3. A run that finds a listing finishes within 4 seconds | at least 8 of 10 at 4000 ms or less | 10/10 | 9/10 | PENDING | PENDING |
+| 3. A run that finds a listing finishes within 4 seconds | at least 8 of 10 at 4000 ms or less | 10/10 | 9/10 | 9/10 | MET
 | 4. An empty query gets a message that asks for input | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
-| 5. 2 model calls and 1000 tokens or fewer | at least 8 of 10 pass | 10/10 | 10/10 | 10/10 |  MET |
+| 5. 2 model calls and 1000 tokens or fewer | at least 8 of 10 pass | 10/10 | 10/10 | 8/10 | MET |
 
 The change helped: criterion 4 went from 0 of 5 to 5 of 5 in every trial, and
 all five messages now ask the user to describe an item and no longer contain
