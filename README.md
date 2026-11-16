@@ -525,9 +525,76 @@ features, no new interface, no changes to the retrieval strategy.
 
 **Running It**
 
+Path B, local with logs. The start command and environment are in
+RUNNING.md. I tested it from a fresh `git clone` into a new folder, following
+RUNNING.md line by line: `python test.py` passed (10 passed, 0 failed) and
+`python app.py ask 'vintage graphic tee under $30'` ran all three stages and
+wrote a log record.
+
 **Instrumentation**
 
+`run_agent()` in `agent.py` is a thin wrapper around the original loop
+(`_run_agent`). It times the run and writes one JSON line to `runs.jsonl`
+through `runlog.py::log_run`, in a `finally` block, so a run that crashes is
+recorded too. Each record holds:
+
+- `ts`: UTC timestamp
+- `input`: the user's query
+- `output`: the fit card, or the error message when the run did not succeed
+- `status`: `ok`, `no_results` (the empty-search branch) or `error` (an exception)
+- `item_id`: the listing the agent selected, or null
+- `wardrobe_items`: how many wardrobe items the run had
+- `model_calls`, `prompt_tokens`, `output_tokens`: what this run used, taken
+  from `generate.py`'s counters
+- `ms`: end-to-end time of the run
+
+The first entry below is a failed run: I set a wrong API key for one command
+(`GEMINI_API_KEY=wrong_key python app.py ask '...'`) to confirm that a crash
+leaves a record. The other ten are the cost-measurement runs from
+`measure_cost.py`.
+
+```
+{"ts": "2026-11-16T04:56:49+00:00", "input": "denim jacket under $50", "status": "error", "output": "ModelUnavailable: The model rejected your API key. Check GEMINI_API_KEY in your .env file, or create a fresh key at aistudio.google.com.", "item_id": null, "wardrobe_items": 10, "model_calls": 1, "prompt_tokens": 0, "output_tokens": 0, "ms": 1904}
+{"ts": "2026-11-16T04:58:16+00:00", "input": "vintage graphic tee under $30", "status": "ok", "output": "Still not over scoring this butterfly baby tee on depop for only $18. I am leaning all the way into the early 2000s energy by pairing it with baggy dark wash jeans and chunky white sneakers for an easy streetwear vibe. Or, honestly, it looks just as good toughened up with wide-leg khakis and combat boots.", "item_id": "lst_002", "wardrobe_items": 10, "model_calls": 2, "prompt_tokens": 755, "output_tokens": 196, "ms": 3313}
+{"ts": "2026-11-16T04:58:27+00:00", "input": "90s track jacket in size M", "status": "ok", "output": "Found the ultimate vintage Champion track jacket on poshmark and I am completely obsessed with the navy and white stripes. I threw it on over a ribbed tank and baggy jeans today for the most effortless 90s streetwear vibe. Scoring this lightweight piece for just $45 feels like an absolute steal for my transitional wardrobe.", "item_id": "lst_004", "wardrobe_items": 10, "model_calls": 2, "prompt_tokens": 731, "output_tokens": 177, "ms": 2059}
+{"ts": "2026-11-16T04:58:38+00:00", "input": "silk slip dress in midi length under $40", "status": "ok", "output": "Found this dreamy floral midi slip on depop for just $30 and I am obsessed. The 90s indie sleaze vibe is unmatched when you layer it over a basic white tank and beat-up blackcombat boots. For chill days, throwing an oversized grey crewneck right over it gives the ultimate grungy-cozy contrast.", "item_id": "lst_013", "wardrobe_items": 10, "model_calls": 2, "prompt_tokens": 794, "output_tokens": 215, "ms": 2306}
+{"ts": "2026-11-16T04:58:49+00:00", "input": "platform sneakers size 8", "status": "ok", "output": "Score for the outfit today was finding these white chunky platform sneakers on poshmark for only $48. They have such a good late nineties vibe with the velcro straps and look so cool with wide leg khakis and a black zip hoodie. Just a little bit of yellowing on the soles, but honestly it just makes them look more authentic.", "item_id": "lst_019", "wardrobe_items": 10, "model_calls": 2, "prompt_tokens": 734, "output_tokens": 169, "ms": 1955}
+{"ts": "2026-11-16T04:59:00+00:00", "input": "denim jacket under $50", "status": "ok", "output":"Still pinching myself over finding this vintage Wrangler cropped denim jacket on poshmark for only $42. The structured shoulders give it the absolute best 90s streetwear vibe, especially when thrown over a white tank and baggy dark-wash jeans for that contrast double-denim look. It is basically a blank canvas, so now I just have to decide whether to load it up with pins or leave it classic.", "item_id": "lst_007", "wardrobe_items": 10, "model_calls": 2, "prompt_tokens": 721, "output_tokens": 192, "ms": 2001}
+{"ts": "2026-11-16T04:59:11+00:00", "input": "vintage graphic tee under $30", "status": "ok", "output": "scored this absolute dream of a butterfly baby tee on depop for just $18 and i am obsessed. i have it styled with some baggy dark wash jeans and chunky sneakers today for the ultimate 2000s street style moment. it has that perfect fitted crop and the colors are even better in person.", "item_id": "lst_002", "wardrobe_items": 10, "model_calls": 2, "prompt_tokens": 746, "output_tokens": 178, "ms": 1946}
+{"ts": "2026-11-16T04:59:23+00:00", "input": "90s track jacket in size M", "status": "ok", "output": "Finally hunted down the ultimate 90s streetwear piece for $45 on poshmark and I am so obsessed. Just threw it on over a ribbed tank and baggy dark wash jeans with my chunky sneakers for that effortless athletic vibe. Might switch it up tomorrow with wide-leg khakis and a brown belt for the absolute best mix of retro and earth tones.", "item_id": "lst_004", "wardrobe_items": 10, "model_calls": 2, "prompt_tokens": 720, "output_tokens": 175, "ms": 3181}
+{"ts": "2026-11-16T04:59:34+00:00", "input": "silk slip dress in midi length under $40", "status": "ok", "output": "Scored this gorgeous floral midi slip dress on depop for only $30 and I am obsessed. I threw it on under an oversized grey crewneck and chunky sneakers for the ultimate cozy streetwear fit. It has that effortless 90s vibe that I live for.", "item_id": "lst_013", "wardrobe_items": 10, "model_calls": 2, "prompt_tokens": 755, "output_tokens": 162, "ms": 1949}
+{"ts": "2026-11-16T04:59:45+00:00", "input": "platform sneakers size 8", "status": "ok", "output": "Finally scored these chunky velcro platform sneakers on poshmark for $48 and I am obsessed with the y2k energy. They look so good with my baggy dark wash jeans, a ribbed tank, and a black denim jacket for that ultimate 90s streetwear look. The slight sole yellowing just makes them look authentically vintage.", "item_id": "lst_019", "wardrobe_items": 10, "model_calls": 2, "prompt_tokens": 726, "output_tokens": 159, "ms": 1682}
+{"ts": "2026-11-16T04:59:56+00:00", "input": "denim jacket under $50", "status": "ok", "output":"Finally tracked down the ultimate boxy Wrangler jacket on poshmark for $42 and my 90s streetwear dreams are officially complete. The cropped cut is so good for throwing over a baggy grey crewneck and khaki trousers without drowning in fabric. It is basically the ultimate blank canvas and I cannot wait to live in this all spring.", "item_id": "lst_007", "wardrobe_items": 10, "model_calls": 2, "prompt_tokens": 732, "output_tokens": 188, "ms": 1913}
+```
+
 **What It Costs**
+
+Measured with `measure_cost.py`: 10 runs (5 queries, each twice), cache off
+(`AI201_CACHE=0`), 9 seconds between runs to stay under the 15 requests per
+minute limit. All 10 returned `ok`, and every run made exactly 2 model calls,
+so no run was served from cache or retried.
+
+| Measure | Average per run |
+|---|---|
+| Model calls | 2.0 |
+| Prompt tokens | 741 |
+| Output tokens | 181 |
+| Total tokens | 922 |
+| Time | 2.23 s |
+
+I run on the Gemini free tier, so the money spent was $0. I report cost as
+tokens and seconds because those are what I measured. I did not convert
+tokens to dollars because I did not look up the current price.
+
+For 100 people a day, assuming one run each:
+
+- Tokens: 100 × 741 = 74,100 prompt + 100 × 181 = 18,100 output = 92,200 tokens
+- Model calls: 100 × 2 = 200 calls
+- Compute time: 100 × 2.23 s = 223 s, about 3.7 minutes
+
+A run that finds nothing makes no model calls (the branch stops before
+`suggest_outfit`).
+
 
 **Run Log and Verdicts**
 
